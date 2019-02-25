@@ -52,7 +52,7 @@ public class InfluxDBReporter implements MonitorService {
         try {
             String result = InetAddress.getLocalHost().getHostName();
             if (StringUtils.isNotEmpty( result)) {
-                this.influxdbTags.put("Hostname", result);
+                this.influxdbTags.put("hostname", result);
             }
         } catch (UnknownHostException e) {
             throw new FlumeException("Error getting hostname, " + e);
@@ -121,15 +121,17 @@ public class InfluxDBReporter implements MonitorService {
             try {
                 Map<String, Map<String, String>> metricsMap = JMXPollUtil.getAllMBeans();
                 for (String component : metricsMap.keySet()) {
+                    String[] componentParts = component.split("\\.");
                     StringBuilder measurementName = new StringBuilder();
 
                     if(reporter.influxdbPrefix != null && !reporter.influxdbPrefix.isEmpty()) {
-                        measurementName.append(reporter.influxdbPrefix).append("_").append(component);
+                        measurementName.append(reporter.influxdbPrefix).append("_").append(componentParts[0]);
                     } else {
-                        measurementName.append(component);
+                        measurementName.append(componentParts[0]);
                     }
 
                     Point.Builder builder = Point.measurement(measurementName.toString())
+                            .tag("name", componentParts[1])
                             .tag(reporter.influxdbTags)
                             .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
 
