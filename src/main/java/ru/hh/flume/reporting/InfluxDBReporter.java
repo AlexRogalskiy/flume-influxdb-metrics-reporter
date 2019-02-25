@@ -137,7 +137,11 @@ public class InfluxDBReporter implements MonitorService {
 
                     Map<String, String> attributeMap = metricsMap.get(component);
                     for (String attribute : attributeMap.keySet()) {
-                        builder.addField(attribute, attributeMap.get(attribute));
+                        try {
+                            builder.addField(attribute, Long.parseLong(attributeMap.get(attribute)));
+                        } catch (NumberFormatException e) {
+                            builder.addField(attribute, attributeMap.get(attribute));
+                        }
                     }
 
                     Point point = builder.build();
